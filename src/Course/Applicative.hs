@@ -28,12 +28,8 @@ import qualified Prelude as P(fmap, return, (>>=))
 --   `∀u v w. pure (.) <*> u <*> v <*> w ≅ u <*> (v <*> w)`
 
 class Functor f => Applicative f where
-  pure ::
-    a -> f a
-  (<*>) ::
-    f (a -> b)
-    -> f a
-    -> f b
+  pure  :: a -> f a
+  (<*>) :: f (a -> b) -> f a -> f b
 
 infixl 4 <*>
 
@@ -44,17 +40,10 @@ infixl 4 <*>
 -- >>> ExactlyOne (+10) <*> ExactlyOne 8
 -- ExactlyOne 18
 instance Applicative ExactlyOne where
-  pure ::
-    a
-    -> ExactlyOne a
-  pure =
-    error "todo: Course.Applicative pure#instance ExactlyOne"
-  (<*>) ::
-    ExactlyOne (a -> b)
-    -> ExactlyOne a
-    -> ExactlyOne b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance ExactlyOne"
+  pure :: a -> ExactlyOne a
+  pure = ExactlyOne
+  (<*>) :: ExactlyOne (a -> b) -> ExactlyOne a -> ExactlyOne b
+  (<*>) f (ExactlyOne a) = (\fab -> fab a) <$> f
 
 -- | Insert into a List.
 --
