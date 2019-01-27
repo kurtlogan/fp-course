@@ -9,7 +9,7 @@ import           Test.Tasty.HUnit      (testCase, (@?=))
 import           Test.Tasty.QuickCheck (testProperty)
 
 import           Course.Applicative    (filtering, lift2, lift3, lift4, pure,
-                                        replicateA, sequence, (*>), lift1,
+                                        replicateA, sequence, (*>), lift0, lift1,
                                         (<*), (<*>))
 import           Course.Core
 import           Course.ExactlyOne     (ExactlyOne (..))
@@ -23,12 +23,13 @@ test_Applicative =
   testGroup "Applicative" [
    exactlyOneTest
   , listTest
-  , haveFmapTest
   , optionalTest
   , functionTest
   , lift2Test
   , lift3Test
   , lift4Test
+  , lift0Test
+  , lift1Test
   , rightApplyTest
   , leftApplyTest
   , sequenceTest
@@ -52,17 +53,6 @@ listTest =
       \x -> pure x == (x :. Nil :: List Integer)
   , testCase "<*>" $
       (+1) :. (*2) :. Nil <*> listh [1,2,3] @?= listh [2,3,4,2,4,6]
-  ]
-
-haveFmapTest :: TestTree
-haveFmapTest =
-  testGroup "lift1" [
-    testCase "ExactlyOne" $
-      (lift1 (+ 1) (ExactlyOne 2)) @?= ExactlyOne (3 :: Integer)
-  , testCase "empty List" $
-      (lift1 (+ 1) Nil) @?= Nil
-  , testCase "List" $
-      (lift1 (+ 1) (listh [1,2,3])) @?= listh [2,3,4]
   ]
 
 optionalTest :: TestTree
@@ -150,6 +140,26 @@ lift4Test =
       lift4 (\a b c d -> a + b + c + d) Empty Empty (Full 9) (Full 10) @?= Empty
   , testCase "+ over functions" $
       lift4 (\a b c d -> a + b + c + d) length sum product (sum . filter even) (listh [4,5,6]) @?= 148
+  ]
+
+lift0Test :: TestTree
+lift0Test =
+  testGroup "lift0" [
+    testCase "ExactlyOne" $
+      (lift0 2) @?= ExactlyOne 2
+  , testCase "List" $
+      (lift0 2) @?= 2 :. Nil
+  ]
+
+lift1Test :: TestTree
+lift1Test =
+  testGroup "lift1" [
+    testCase "ExactlyOne" $
+      (lift1 (+ 1) (ExactlyOne 2)) @?= ExactlyOne (3 :: Integer)
+  , testCase "empty List" $
+      (lift1 (+ 1) Nil) @?= Nil
+  , testCase "List" $
+      (lift1 (+ 1) (listh [1,2,3])) @?= listh [2,3,4]
   ]
 
 rightApplyTest :: TestTree
