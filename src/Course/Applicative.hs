@@ -213,7 +213,7 @@ lift1 f a = (lift0 f) <*> a
 --
 -- prop> \x y -> Full x *> Full y == Full y
 (*>) :: Applicative f => f a -> f b -> f b
-(*>) a1 a2 = error "todo"
+(*>) a1 a2 = snd <$> (lift2 (,) a1 a2)
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -233,13 +233,8 @@ lift1 f a = (lift0 f) <*> a
 -- prop> \x y z a b c -> (x :. y :. z :. Nil) <* (a :. b :. c :. Nil) == (x :. x :. x :. y :. y :. y :. z :. z :. z :. Nil)
 --
 -- prop> \x y -> Full x <* Full y == Full x
-(<*) ::
-  Applicative f =>
-  f b
-  -> f a
-  -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+(<*) :: Applicative f => f b -> f a -> f b
+(<*) a1 a2 = fst <$> (lift2 (,) a1 a2)
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -257,12 +252,9 @@ lift1 f a = (lift0 f) <*> a
 --
 -- >>> sequence ((*10) :. (+2) :. Nil) 6
 -- [60,8]
-sequence ::
-  Applicative f =>
-  List (f a)
-  -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence :: Applicative f => List (f a) -> f (List a)
+sequence Nil       = pure Nil
+sequence (x :. xs) = lift2 (:.) x (sequence xs)
 
 -- | Replicate an effect a given number of times.
 --
@@ -282,13 +274,10 @@ sequence =
 --
 -- >>> replicateA 3 ('a' :. 'b' :. 'c' :. Nil)
 -- ["aaa","aab","aac","aba","abb","abc","aca","acb","acc","baa","bab","bac","bba","bbb","bbc","bca","bcb","bcc","caa","cab","cac","cba","cbb","cbc","cca","ccb","ccc"]
-replicateA ::
-  Applicative f =>
-  Int
-  -> f a
-  -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA :: Applicative f => Int -> f a -> f (List a)
+replicateA x fa
+  | x <= 0    = pure Nil
+  | otherwise = lift2 (:.) fa (replicateA (x - 1) fa)
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -310,13 +299,9 @@ replicateA =
 -- >>> filtering (const $ True :. True :.  Nil) (1 :. 2 :. 3 :. Nil)
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
-filtering ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering :: Applicative f => (a -> f Bool) -> List a -> f (List a)
+filtering _ Nil       = pure Nil
+filtering p (x :. xs) = lift2 (++) (\b -> if b then x :. Nil else Nil) <$> (p x)) (filtering p xs)
 
 -----------------------
 -- SUPPORT LIBRARIES --
