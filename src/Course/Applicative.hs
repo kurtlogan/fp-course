@@ -301,7 +301,7 @@ replicateA x fa
 --
 filtering :: Applicative f => (a -> f Bool) -> List a -> f (List a)
 filtering _ Nil       = pure Nil
-filtering p (x :. xs) = lift2 (++) (\b -> if b then x :. Nil else Nil) <$> (p x)) (filtering p xs)
+filtering p (x :. xs) = lift2 (++) ((\b -> if b then x :. Nil else Nil) <$> (p x)) (filtering p xs)
 
 -----------------------
 -- SUPPORT LIBRARIES --
