@@ -128,7 +128,7 @@ firstRepeat xs  = eval (findM (\x -> State (\s -> (S.member x s, S.insert x s)))
 --
 -- prop> \xs -> distinct xs == distinct (flatMap (\x -> x :. x :. Nil) xs)
 distinct :: Ord a => List a -> List a
-distinct xs = 
+distinct xs = eval (filtering (\a -> State (\s -> (S.notMember a s, S.insert a s))) xs) S.empty
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
@@ -151,8 +151,8 @@ distinct xs =
 --
 -- >>> isHappy 44
 -- True
-isHappy ::
-  Integer
-  -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy :: Integer -> Bool
+isHappy = error ""
+
+square :: Integer -> Integer
+square i = error ""
