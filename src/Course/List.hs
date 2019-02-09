@@ -72,9 +72,8 @@ foldLeft f b (h :. t) = let b' = f b h in b' `seq` foldLeft f b' t
 --
 -- prop> \x -> x `headOr` Nil == x
 headOr :: a -> List a -> a
-headOr a Nil      = a
-headOr _ (x :. _) = x
-  
+headOr = foldRight const
+
 
 -- | The product of the elements of a list.
 --
@@ -87,7 +86,7 @@ headOr _ (x :. _) = x
 -- >>> product (1 :. 2 :. 3 :. 4 :. Nil)
 -- 24
 product :: List Int -> Int
-product = foldLeft (*) 1
+product = foldRight (*) 1
 
 -- | Sum the elements of the list.
 --
@@ -99,7 +98,7 @@ product = foldLeft (*) 1
 --
 -- prop> \x -> foldLeft (-) (sum x) x == 0
 sum :: List Int -> Int
-sum = foldLeft (+) 0
+sum = foldRight (+) 0
 
 -- | Return the length of the list.
 --
@@ -108,7 +107,7 @@ sum = foldLeft (+) 0
 --
 -- prop> \x -> sum (map (const 1) x) == length x
 length :: List a -> Int
-length = foldLeft (\b -> \_ -> 1 + b) 0
+length = foldRight (const (1 +)) 0
 
 -- | Map the given function on each element of the list.
 --
@@ -119,8 +118,7 @@ length = foldLeft (\b -> \_ -> 1 + b) 0
 --
 -- prop> \x -> map id x == x
 map :: (a -> b) -> List a -> List b
-map _ Nil       = Nil
-map f (x :. xs) = (f x) :. (map f xs)
+map f = foldRight ((:.) . f) Nil
 
 -- | Return elements satisfying the given predicate.
 --
@@ -133,7 +131,7 @@ map f (x :. xs) = (f x) :. (map f xs)
 --
 -- prop> \x -> filter (const False) x == Nil
 filter :: (a -> Bool) -> List a -> List a
-filter f = foldRight (\a -> \b -> if f a then a :. b else b) Nil
+filter f = foldRight (\a b -> if f a then a :. b else b) Nil
 
 -- | Append two lists to a new list.
 --
@@ -148,7 +146,7 @@ filter f = foldRight (\a -> \b -> if f a then a :. b else b) Nil
 --
 -- prop> \x -> x ++ Nil == x
 (++) :: List a -> List a -> List a
-(++) x y = foldRight (:.) y x
+(++) = flip (foldRight (:.))
 
 infixr 5 ++
 
@@ -176,8 +174,7 @@ flatten = foldRight (++) Nil
 --
 -- prop> \x -> flatMap id (x :: List (List Int)) == flatten x
 flatMap :: (a -> List b) -> List a -> List b
-flatMap _ Nil       = Nil
-flatMap f (x :. xs) = f x ++ (flatMap f xs)
+flatMap f = foldRight ((++) . f) Nil
 
 -- | Flatten a list of lists to a list (again).
 -- HOWEVER, this time use the /flatMap/ function that you just wrote.
@@ -209,8 +206,7 @@ flattenAgain = flatMap id
 -- >>> seqOptional (Empty :. map Full infinity)
 -- Empty
 seqOptional :: List (Optional a) -> Optional (List a)
-seqOptional Nil = Full Nil
-seqOptional xs  = foldRight (\a -> \b -> bindOptional (\a' -> mapOptional(\b' -> a' :. b') b) a) (Full Nil) xs
+seqOptional = foldRight (twiceOptional (:.)) (Full Nil)
 
 -- | Find the first element in the list matching the predicate.
 --
@@ -229,10 +225,7 @@ seqOptional xs  = foldRight (\a -> \b -> bindOptional (\a' -> mapOptional(\b' ->
 -- >>> find (const True) infinity
 -- Full 0
 find :: (a -> Bool) -> List a -> Optional a
-find _ Nil = Empty
-find p (x :. xs)
-  | p x       = Full x
-  | otherwise = find p xs
+find p = foldRight (\a b -> if p a then Full a else b) Empty
 
 -- | Determine if the length of the given list is greater than 4.
 --
@@ -263,8 +256,7 @@ lengthGT4 _                            = False
 --
 -- prop> \x -> let types = x :: Int in reverse (x :. Nil) == x :. Nil
 reverse :: List a -> List a
-reverse Nil = Nil
-reverse xs  = foldLeft (\z a -> a :. z) Nil xs
+reverse = foldLeft (flip (:.)) Nil
 
 -- | Produce an infinite `List` that seeds with the given value at its head,
 -- then runs the given function for subsequent elements

@@ -152,7 +152,10 @@ distinct xs = eval (filtering (\a -> State (\s -> (S.notMember a s, S.insert a s
 -- >>> isHappy 44
 -- True
 isHappy :: Integer -> Bool
-isHappy = error ""
+isHappy i = contains 1 (firstRepeat (produce square i))
 
 square :: Integer -> Integer
-square i = error ""
+square = toInteger . sum . (((P.^2) . digitToInt) <$>) . toList . show
+
+toList :: [a] -> List a
+toList = P.foldr (:.) Nil
