@@ -155,7 +155,7 @@ isHappy :: Integer -> Bool
 isHappy i = contains 1 (firstRepeat (produce square i))
 
 square :: Integer -> Integer
-square = toInteger . sum . (((P.^2) . digitToInt) <$>) . toList . show
+square = toInteger . sum . (((P.^2) . digitToInt) <$>) . asList . show
 
-toList :: [a] -> List a
-toList = P.foldr (:.) Nil
+asList :: [a] -> List a
+asList = P.foldr (:.) Nil
